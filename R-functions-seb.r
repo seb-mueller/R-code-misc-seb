@@ -547,45 +547,71 @@ plotMA.CDreturn <- function(cD, samplesA, samplesB, normaliseData = TRUE, scale 
 rm(plotMA.CDreturn )
 
 ## ---- bam2counts
-
-gwcov <- function(bins,groupdf,path=".") {
+gwcov <- function(bins,mygroupdf,path=".",filecol="File",paired=TRUE,...) {
   require(ShortRead)
   require(reshape2)
-  tmpdir <- getwd()
-  setwd(path)
+  require(GenomicAlignments)
+  #tmpdir <- getwd()
+  #setwd(path)
   #this functions takes bins (GRanges created by tileGenome) and a data-frame containing metainformation to a list of bam files with the bam-file name as rownames.
-  #The bam files are read in and reads are counted for each bin saved in a data.frame in the long and wide format (for ggplot) including the provided annotation in the bin object and groupdf
+  #The bam files are read in and reads are counted for each bin saved in a data.frame in the long and wide format (for ggplot) including the provided annotation in the bin object and mygroupdf 
   #bins should ideally have an ID column and a type column
   #e.g.
+  # GRanges object with 2 ranges and 3 metadata columns:
+  #       seqnames            ranges strand |            ID        type
+  #          <Rle>         <IRanges>  <Rle> |   <character> <character>
+  #   [1]   I_Chr0 [     1,  500000]      * |      I_Chr0_1      Bin5e5
+  #   [2]   I_Chr0 [500001, 1000000]      * | I_Chr0_500001      Bin5e5
+  #         genome
+  #       <factor>
+  #   [1]        I
+  #   [2]        I
+  #   -------
+  #   seqinfo: 30 sequences from an unspecified genome
   #GRanges object with 6 ranges and 2 metadata columns:
   #      seqnames           ranges strand |          ID        type
   #         <Rle>        <IRanges>  <Rle> | <character> <character>
-  #  [1]     Chr1 [     1,  50000]      * |      Chr1 <- 1      Bin5e4
-  #  [2]     Chr1 [ 50001, 100000]      * |  Chr1 <- 50001      Bin5e4
-  #groupdf should looks something like this:
-  #                                                                                 libnr line mapping Rep
-  #arp6-smRNA-lib-5 <- S11 <- pooled <- trimmed.perfect.multi.k1.onlymapped.countlist   S11 arp6   multi   1
-  #arp6-smRNA-lib-6 <- S1 <- pooled <- trimmed.perfect.multi.k1.onlymapped.countlist     S1 arp6   multi   2
-  bamFls <- rownames(groupdf)
+  #  [1]     Chr1 [     1,  50000]      * |      Chr1_1      Bin5e4
+  #  [2]     Chr1 [ 50001, 100000]      * |  Chr1_50001      Bin5e4
+  #if bins has a genome column, it will be carried over!
+  #mygroupdf should looks something like this:
+  #   Line Replicate Time  Library       File
+  # 1    C         1 wk10 C_1_wk10 file_1.bam
+  # 2    C         1  wk4  C_1_wk4 file_2.bam
+  myannotcols <- c("seqnames","start","ID","genome")
+  bamFls <- mygroupdf[,filecol]
   bin.counts.wide <- matrix(NA, nr=length(bins),nc=length(bamFls))
-  colnames(bin.counts.wide) <- bamFls
-  rownames(bin.counts.wide) <- bins$ID
-  #browser()
+  colnames(bin.counts.wide) <- mygroupdf[,filecol]
+  rownames(bin.counts.wide) <- bins$ID 
+  message("Paired/Single End: assuming paired=",paired)
   for (bam in bamFls){
-    message("reading in ",bam)
-    bin.counts.wide[,bam] <- countOverlaps(bins,readGAlignments(bam))
-    #counts <- marks[,names(bamFls[i])] <- countOverlaps(gr4, aln[hits==1])
+    message("reading in ",paste(path,bam,sep="/"))
+    if (paired) {
+      bin.counts.wide[,bam] <- countOverlaps(bins,readGAlignmentPairs(paste(path,bam,sep="/")),...)
+    } else {
+      bin.counts.wide[,bam] <- countOverlaps(bins,readGAlignments(paste(path,bam,sep="/")),...)
+    }
+    #counts_marks[,names(bamFls[i])] <- countOverlaps(gr4, aln[hits==1])
+  }	
+  bin.counts.wide <- cbind(as.data.frame(bin.counts.wide),as.data.frame(bins)[,myannotcols])
+  bin.counts.wide$ID  <- as.factor(bin.counts.wide$ID)  
+  #bin.counts.wide$start <- start(bins)
+  #bin.counts.wide$seqnames <- as.character(seqnames(bins))
+  #bin.counts.wide$ID <- bins$ID
+  #if(!is.null(bins$genome)) {
+  #bin.counts.wide$genome <- bins$genome 
+  #bin.counts.wide$genome[grep(Linepatterns[1],bins$ID)] <- Linecodes[1]
+  #bin.counts.wide$genome[grep(Linepatterns[2],bins$ID)] <- Linecodes[2]
+  #} else {
+  #message("bins object doesnt't have genome column, using NA instead")
+  #bin.counts.wide$genome <- rep(NA,length(bins$ID))
+  #}
+  bin.counts.long <- melt(bin.counts.wide,id.vars=myannotcols)
+  #adding mygroupdf information to long formate (note, it is not possible to my knowledge to add it to wide format)
+  for (annot in colnames(mygroupdf)){
+    bin.counts.long[,annot] <- rep(mygroupdf[,annot],each=length(bins))
   }
-  bin.counts.wide <- as.data.frame(bin.counts.wide)
-  bin.counts.wide$start <- start(bins)
-  bin.counts.wide$seqnames <- as.character(seqnames(bins))
-  bin.counts.wide$binID <- bins$ID
-  bin.counts.long <- melt(bin.counts.wide,id.vars=c("binID","start","seqnames"))
-  #adding groupdf information to long formate (note, it is not possible to my knowledge to add it to wide format)
-  for (annot in colnames(groupdf)){
-    bin.counts.long[,annot] <- rep(groupdf[,annot],each=length(bins))
-  }
-  setwd(tmpdir)
+  #binannot <- bin.counts.wide[,which(colnames(bin.counts.wide) %in% c("ID","start","seqnames","genome"))]
   return(list(wide=bin.counts.wide,long=bin.counts.long))
 }
 
