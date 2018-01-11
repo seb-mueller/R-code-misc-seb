@@ -617,15 +617,14 @@ gwcov2 <- function(bins,mygroupdf,path=".",filecol="File") {
 .sebenv$gwcov  <- gwcov 
 rm(gwcov )
 
-gwcov.long <- function(bin.counts.wide,mygroupdf) {
-	myannotcols <- c("seqnames","start","ID","genome")
-#	bin.counts.long <- melt(bin.counts.wide,id.vars=myannotcols,measure.vars=mygroupdf[,filecol])
-	bin.counts.long <- melt(bin.counts.wide,id.vars=myannotcols)
-	#adding mygroupdf information to long formate (note, it is not possible to my knowledge to add it to wide format)
-	for (annot in colnames(mygroupdf)){
-		bin.counts.long[,annot] <- rep(mygroupdf[,annot],each=nrow(bin.counts.wide))
-	}
-	return(bin.counts.long)
+gwcov.long <- function(bin.counts.wide,groupdf) {
+  require(reshape2)
+  bin.counts.long <- melt(bin.counts.wide,id.vars=c("binID","start","seqnames"))
+  #adding groupdf information to long formate (note, it is not possible to my knowledge to add it to wide format)
+  for (annot in colnames(groupdf)){
+    bin.counts.long[,annot] <- rep(groupdf[,annot],each=nrow(bin.counts.wide))
+  }
+  return(bin.counts.long)
 }
 .sebenv$gwcov.long  <- gwcov.long 
 rm(gwcov.long )
