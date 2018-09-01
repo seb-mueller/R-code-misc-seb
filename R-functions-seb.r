@@ -817,4 +817,18 @@ rm(headtail)
   return(venn(vennlist,show.plot=FALSE))
 }
 
+.sebenv$
+
+dfinit <- function (col, row, init = NA) {
+  # input col, row = vectors with column/row names as stings
+  df <- as.data.frame(matrix(init, ncol = length(col), nrow = length(row)))
+  rownames(df) <- row
+  colnames(df) <- col
+  return(df)
+}
+# dfinit(c("col1", "col2", "col3"), c("r1", "r2"))
+#     a  b
+# r1 NA NA
+# r2 NA NA
+
 attach(.sebenv)
