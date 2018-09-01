@@ -1,6 +1,8 @@
 ### Create a new invisible environment for all the functions to go in so it doesn't clutter your workspace.
 .sebenv <- new.env()
 ################################### 2nd
+.sebenv$headm <- function(x, n=6) x[1:n, 1:n]
+
 drawhclust2 <- function(pan){
   plot(pan$data,type="n")
   if (!pan$lbvalue %in% names(pan$hlist)) {
@@ -788,9 +790,10 @@ overlap_annot <- function(interval, annot, naming, ColName="Name") {
 .sebenv$overlap_annot <- overlap_annot
 rm(overlap_annot)
 
-.sebenv$headtail <- function(x) {print(head(x));print(tail(x))}
-rm(headtail)
-
+.sebenv$headtail  <-  function(df, num = 3) {
+  nr <- nrow(df)
+  df[c(1:num,(nr-num+1):nr),]
+}
 
 .sebenv$venn.pretty <- function (vennlist,filename="venn.pdf",cat.pos=1,cat.cex=1,...) {
   # sample five-set Venn Diagram
@@ -815,6 +818,59 @@ rm(headtail)
                              )
   ggsave(filename=filename,plot=plotObject)
   return(venn(vennlist,show.plot=FALSE))
+}
+
+.sebenv$fromList <- function (input) {
+  # Same as original fromList()...
+  elements <- unique(unlist(input))
+  data <- unlist(lapply(input, function(x) {
+      x <- as.vector(match(elements, x))
+      }))
+  data[is.na(data)] <- as.integer(0)
+  data[data != 0] <- as.integer(1)
+  data <- data.frame(matrix(data, ncol = length(input), byrow = F))
+  data <- data[which(rowSums(data) != 0), ]
+  names(data) <- names(input)
+  # ... Except now it conserves your original value names!
+  row.names(data) <- elements
+  return(data)
+}
+
+.sebenv$overlapGroups <- function (listInput, sort = TRUE) {
+  # listInput could look like this:
+  # $one
+  # [1] "a" "b" "c" "e" "g" "h" "k" "l" "m"
+  # $two
+  # [1] "a" "b" "d" "e" "j"
+  # $three
+  # [1] "a" "e" "f" "g" "h" "i" "j" "l" "m"
+  listInputmat    <- fromList(listInput) == 1
+  #     one   two three
+  # a  TRUE  TRUE  TRUE
+  # b  TRUE  TRUE FALSE
+  #...
+  # condensing matrix to unique combinations elements
+  listInputunique <- unique(listInputmat)
+  grouplist <- list()
+  # going through all unique combinations and collect elements for each in a list
+  for (i in 1:nrow(listInputunique)) {
+    currentRow <- listInputunique[i,]
+    myelements <- which(apply(listInputmat,1,function(x) all(x == currentRow)))
+    attr(myelements, "groups") <- currentRow
+    grouplist[[paste(colnames(listInputunique)[currentRow], collapse = ":")]] <- myelements
+    myelements
+    # attr(,"groups")
+    #   one   two three 
+    # FALSE FALSE  TRUE 
+    #  f  i 
+    # 12 13 
+  }
+  if (sort) {
+    grouplist <- grouplist[order(sapply(grouplist, function(x) length(x)), decreasing = TRUE)]
+  }
+  attr(grouplist, "elements") <- unique(unlist(listInput))
+  return(grouplist)
+  # save element list to facilitate access using an index in case rownames are not named
 }
 
 attach(.sebenv)
