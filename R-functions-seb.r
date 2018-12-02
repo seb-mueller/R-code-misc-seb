@@ -3,6 +3,8 @@
 ################################### 2nd
 .sebenv$headm <- function(x, n=6) x[1:n, 1:n]
 
+.sebenv$di <- function() X11.options(display=scan(file="~/.display",what=character()))
+
 .sebenv$label2number <- function(myvec) {
   tmp <- factor(myvec)
   levels(tmp) <- 1:length(levels(tmp))
@@ -12,7 +14,7 @@
 # [1] 1 2 1
 
 
-drawhclust2 <- function(pan){
+.sebenv$drawhclust2 <- function(pan){
   plot(pan$data,type="n")
   if (!pan$lbvalue %in% names(pan$hlist)) {
     pan$distmat=pan$dists[[pan$lbvalue]]$dist
@@ -23,36 +25,28 @@ drawhclust2 <- function(pan){
   else text(pan$data,col=cutree(pan$hlist[[pan$lbvalue]],pan$slidervalue), labels = as.character(1:nrow(pan$data)))
   return(pan)			# panel has to be returned
 }
-.sebenv$drawhclust2 <- drawhclust2
-rm(drawhclust2)
 
-drawtree <- function(pan){
+.sebenv$drawtree <- function(pan){
   text(pan$data,col=cutree(pan$hlist[[pan$lbvalue]],pan$slidervalue), labels = as.character(1:nrow(pan$data)))
   return(pan)			# panel has to be returned
 }
-.sebenv$drawtree <- drawtree
-rm(drawtree)
 
-oncheck <- function(pan) {
+.sebenv$oncheck <- function(pan) {
   if (pan$xrns) points(pan$dists[[pan$lbvalue]]$resampled_points, col=16,pch=4)
   else { plot(pan$data,type="n"); drawtree(pan) }
   pan
 }
-.sebenv$oncheck <- oncheck
-rm(oncheck)
 
 #df$yw}i.sebenv$pi_porm(pi)
 
-plothclust2 <- function(dists,data){
+.sebenv$plothclust2 <- function(dists,data){
   panel <- rp.control(data=data,dists=dists,slidervalue=1,hlist=list(),distmat=NULL,xrns=FALSE)	# don't take "a"
   rp.listbox(panel, lbvalue,action=drawhclust2, names(dists))
   rp.slider(panel,slidervalue,1,20,drawtree,showvalue=TRUE,res=1)
   rp.checkbox(panel, xrns, action=oncheck)
 }
-.sebenv$plothclust2 <- plothclust2
-rm(plothclust2)
 
-.ls.objects <- function(pos = 1, pattern, order.by,
+.sebenv$.ls.objects <- function(pos = 1, pattern, order.by,
                         decreasing=FALSE, head=FALSE, n=5) {
   napply <- function(names, fn) sapply(names, function(x)
                                        fn(get(x, pos = pos)))
@@ -75,27 +69,19 @@ rm(plothclust2)
     out <- head(out, n)
   out
 }
-.sebenv$.ls.objects  <- .ls.objects
-rm(.ls.objects )
 
 # shorthand
-lsos <- function(..., n=10) {
+.sebenv$lsos <- function(..., n=10) {
   .ls.objects(..., order.by="Size", decreasing=TRUE, head=TRUE, n=n)
 }
-.sebenv$lsos  <- lsos
-rm(lsos )
 
 .sebenv$wideScreen <- function(howWide=Sys.getenv("COLUMNS")) {
   options(width=as.integer(howWide))
 }
 
-sumfilter <- function(x,n=500){filter(x,rep(1,n), sides=2)}
-.sebenv$sumfilter  <- sumfilter
-rm(sumfilter )
+.sebenv$sumfilter <- function(x,n=500){filter(x,rep(1,n), sides=2)}
 
-meanfilter <- function(x,n=500){filter(x,rep(1/n,n), sides=2)}
-.sebenv$meanfilter  <- meanfilter
-rm(meanfilter )
+.sebenv$meanfilter <- function(x,n=500){filter(x,rep(1/n,n), sides=2)}
 
 ###cross overlapping table types in of g-range data
 #given: GRanges object (here genes) with annotation in say type column
@@ -112,11 +98,9 @@ cross_overlap_grange <- function(genes) {
   }
   return(m)
 }
-.sebenv$cross_overlap_grange  <- cross_overlap_grange
-rm(cross_overlap_grange )
 
 
-makepumatrix <- function(reads,weight=1L) {
+.sebenv$makepumatrix <- function(reads,weight=1L) {
   treatments <- paste(rep(21:24,2),rep(c("+","-"),each=4))
   if (class(reads)=="GRanges" & weight==1L) {warning("GRanges-Objects (read in by segmentSeq::readBAM) usually come with weights since they tend to be produced by readBAM, please double check")}
   pumatrix <- matrix(0, ncol=9, nrow=seqlengths(reads))
@@ -131,10 +115,8 @@ makepumatrix <- function(reads,weight=1L) {
   colnames(pumatrix)<-c("c1",treatments)
   return(pumatrix)
 }
-.sebenv$makepumatrix  <- makepumatrix
-rm(makepumatrix )
 
-makepumatrixgg <- function(aln,weight=1L,sizes=list("21nt"=21,"22nt"=22,"23nt"=23,"24nt"=24),strands=list("+strand"="+","-strand"="-"),samplenames=colnames(aln@data),normalize=FALSE) {
+.sebenv$makepumatrixgg <- function(aln,weight=1L,sizes=list("21nt"=21,"22nt"=22,"23nt"=23,"24nt"=24),strands=list("+strand"="+","-strand"="-"),samplenames=colnames(aln@data),normalize=FALSE) {
   if (class(aln)=="GRanges" & weight==1L) {warning("GRanges-Objects (read in by segmentSeq::readBAM) usually come with weights since they tend to be produced by readBAM, please double check")}
   pumatrix <- data.frame(coverage = numeric(0), position = numeric(0), chromosome = character(0), strand = character(0), size = numeric(0), sample = character(0))
   if (normalize) {aln@data <- t(t(aln@data)/c(aln@libsizes/mean(aln@libsizes)))}
@@ -161,19 +143,15 @@ makepumatrixgg <- function(aln,weight=1L,sizes=list("21nt"=21,"22nt"=22,"23nt"=2
 #pmatrix[pmatrix$strand=="-",]$coverage <- -pmatrix[pmatrix$strand=="-",]$coverage
 #pumatrixgg2 <- pmatrix[pmatrix$coverage!=0,]
 #ggplot(pumatrixgg2, aes(x=position,y=coverage,fill=size)) + geom_bar(stat="identity",position = "identity") + facet_grid(sample~chromosome,scales = "free") + theme_bw() + theme(strip.text.y = element_text(size = 7))
-.sebenv$makepumatrixgg  <- makepumatrixgg
-rm(makepumatrixgg )
 
-logma <- function(x,y) {
+.sebenv$logma <- function(x,y) {
   a <- 0.5*(log2(x*y))
   m <- log2(x/y)
   cbind(a=a,m=m)
 }
 
-.sebenv$logma   <- logma
-rm(logma  )
 
-findYLim <- function( pumatrix){
+.sebenv$findYLim <- function( pumatrix){
   ymax <- 0
   ymin <- 0
   fileMax <- max(pumatrix[,2:length(pumatrix[1,])])
@@ -182,8 +160,6 @@ findYLim <- function( pumatrix){
   if(fileMin  < ymin ){ymin <- fileMin}
   c( ymin, ymax)
 }
-.sebenv$findYLim  <- findYLim
-rm(findYLim )
 
 .sebenv$plotGraph <- function( pumatrix,ylims, treatments,title,linecols=colors()[c(554,256,76,28)],legend = c(21:24)){
   ytitle <- "count of sRNAs covering a base"
@@ -276,8 +252,6 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     }
   }
 }
-.sebenv$multiplot  <- multiplot
-rm(multiplot )
 
 ###these are some auxiliary functions, needed for later calculation###
 # takes "lociData"-object (or a subset thereof) along with a genome (DNAStringSet-object) and extracts the for each loci
@@ -688,9 +662,6 @@ hybrid_normalizing <- function(mycov,mygroupdf,hybridLine="iC",parentLines=c("i"
 .sebenv$hybrid_normalizing <- hybrid_normalizing
 rm(hybrid_normalizing)
 
-di <- function() X11.options(display=scan(file="~/.display",what=character()))
-.sebenv$di <- di
-rm(di)
 
 plotMAgg <- function(x, y=NULL, uselog=TRUE,offset=0,norm=FALSE,method="TMM",dcolor="green", lcolor="red", sp=0.5, ...) {
   if (is.null(y)) {
@@ -756,7 +727,7 @@ rm(panel.cor)
 
 
 ###
-annotate_intervals_arabidopsis <- function(interval) {
+.sebenv$annotate_intervals_arabidopsis <- function(interval) {
   interval$overlapgenes <- rep("none", length(interval))
   ref <- mRNA
   overlap <- findOverlaps(ref,interval)
@@ -779,8 +750,6 @@ annotate_intervals_arabidopsis <- function(interval) {
   interval$overlapSidRNAs[subjectHits(overlap)[uniqueref]] <- as.character(ref[queryHits(overlap)[uniqueref],]$Name)
   return(interval)
 }
-.sebenv$annotate_intervals_arabidopsis <- annotate_intervals_arabidopsis
-rm(annotate_intervals_arabidopsis)
 
 # Input: 2 GRange Objects
 # Output: 1 GRange Object (same as first input with additional Column)
@@ -793,8 +762,6 @@ overlap_annot <- function(interval, annot, naming, ColName="Name") {
   interval@elementMetadata[[naming]][subjectHits(overlap)[uniqueannot]] <- as.character(annot[queryHits(overlap)[uniqueannot],]@elementMetadata[[ColName]])
   interval
 }
-.sebenv$overlap_annot <- overlap_annot
-rm(overlap_annot)
 
 .sebenv$headtail  <-  function(df, num = 3) {
   nr <- nrow(df)
