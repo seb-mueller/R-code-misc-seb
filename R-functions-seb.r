@@ -3,6 +3,15 @@
 ################################### 2nd
 .sebenv$headm <- function(x, n=6) x[1:n, 1:n]
 
+.sebenv$label2number <- function(myvec) {
+  tmp <- factor(myvec)
+  levels(tmp) <- 1:length(levels(tmp))
+  return(as.integer(tmp))
+}
+# label2color(c("a","b","a"))
+# [1] 1 2 1
+
+
 drawhclust2 <- function(pan){
   plot(pan$data,type="n")
   if (!pan$lbvalue %in% names(pan$hlist)) {
@@ -161,19 +170,16 @@ logma <- function(x,y) {
   cbind(a=a,m=m)
 }
 
-logma  <- logma
 .sebenv$logma   <- logma
 rm(logma  )
 
 findYLim <- function( pumatrix){
   ymax <- 0
   ymin <- 0
-
   fileMax <- max(pumatrix[,2:length(pumatrix[1,])])
   fileMin <- min(pumatrix[,2:length(pumatrix[1,])])
   if(fileMax > ymax){ymax <- fileMax}
   if(fileMin  < ymin ){ymin <- fileMin}
-
   c( ymin, ymax)
 }
 .sebenv$findYLim  <- findYLim
@@ -887,4 +893,4 @@ rm(overlap_annot)
 # r1 NA NA
 # r2 NA NA
 
-attach(.sebenv)
+# attach(.sebenv)
