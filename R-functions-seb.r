@@ -1,7 +1,8 @@
 ### Create a new invisible environment for all the functions to go in so it doesn't clutter your workspace.
 .sebenv <- new.env()
 ################################### 2nd
-.sebenv$headm <- function(x, n=6) x[1:n, 1:n]
+.sebenv$sumfilter <- function(x,n=500){filter(x,rep(1,n), sides=2)}
+.sebenv$meanfilter <- function(x,n=500){filter(x,rep(1/n,n), sides=2)}
 
 drawhclust2 <- function(pan){
   plot(pan$data,type="n")
@@ -43,50 +44,7 @@ plothclust2 <- function(dists,data){
 .sebenv$plothclust2 <- plothclust2
 rm(plothclust2)
 
-.ls.objects <- function(pos = 1, pattern, order.by,
-                        decreasing=FALSE, head=FALSE, n=5) {
-  napply <- function(names, fn) sapply(names, function(x)
-                                       fn(get(x, pos = pos)))
-  names <- ls(pos = pos, pattern = pattern)
-  obj.class <- napply(names, function(x) as.character(class(x))[1])
-  obj.mode <- napply(names, mode)
-  obj.type <- ifelse(is.na(obj.class), obj.mode, obj.class)
-  obj.prettysize <- napply(names, function(x) {
-                             capture.output(print(object.size(x), units = "auto")) })
-  obj.size <- napply(names, object.size)
-  obj.dim <- t(napply(names, function(x)
-                      as.numeric(dim(x))[1:2]))
-  vec <- is.na(obj.dim)[, 1] & (obj.type != "function")
-  obj.dim[vec, 1] <- napply(names, length)[vec]
-  out <- data.frame(obj.type, obj.size, obj.prettysize, obj.dim)
-  names(out) <- c("Type", "Size", "PrettySize", "Rows", "Columns")
-  if (!missing(order.by))
-    out <- out[order(out[order.by], decreasing=decreasing), ]
-  if (head)
-    out <- head(out, n)
-  out
-}
-.sebenv$.ls.objects  <- .ls.objects
-rm(.ls.objects )
 
-# shorthand
-lsos <- function(..., n=10) {
-  .ls.objects(..., order.by="Size", decreasing=TRUE, head=TRUE, n=n)
-}
-.sebenv$lsos  <- lsos
-rm(lsos )
-
-.sebenv$wideScreen <- function(howWide=Sys.getenv("COLUMNS")) {
-  options(width=as.integer(howWide))
-}
-
-sumfilter <- function(x,n=500){filter(x,rep(1,n), sides=2)}
-.sebenv$sumfilter  <- sumfilter
-rm(sumfilter )
-
-meanfilter <- function(x,n=500){filter(x,rep(1/n,n), sides=2)}
-.sebenv$meanfilter  <- meanfilter
-rm(meanfilter )
 
 ###cross overlapping table types in of g-range data
 #given: GRanges object (here genes) with annotation in say type column
@@ -155,17 +113,13 @@ makepumatrixgg <- function(aln,weight=1L,sizes=list("21nt"=21,"22nt"=22,"23nt"=2
 .sebenv$makepumatrixgg  <- makepumatrixgg
 rm(makepumatrixgg )
 
-logma <- function(x,y) {
+.sebenv$logma <- function(x,y) {
   a <- 0.5*(log2(x*y))
   m <- log2(x/y)
   cbind(a=a,m=m)
 }
 
-logma  <- logma
-.sebenv$logma   <- logma
-rm(logma  )
-
-findYLim <- function( pumatrix){
+.sebenv$findYLim <- function( pumatrix){
   ymax <- 0
   ymin <- 0
 
@@ -176,8 +130,6 @@ findYLim <- function( pumatrix){
 
   c( ymin, ymax)
 }
-.sebenv$findYLim  <- findYLim
-rm(findYLim )
 
 .sebenv$plotGraph <- function( pumatrix,ylims, treatments,title,linecols=colors()[c(554,256,76,28)],legend = c(21:24)){
   ytitle <- "count of sRNAs covering a base"
@@ -242,7 +194,7 @@ rm(findYLim )
 # then plot 1 will go in the upper left, 2 will go in the upper right, and
 # 3 will go all the way across the bottom.
 #
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+.sebenv$multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   require(grid)
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
@@ -270,8 +222,6 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     }
   }
 }
-.sebenv$multiplot  <- multiplot
-rm(multiplot )
 
 ###these are some auxiliary functions, needed for later calculation###
 # takes "lociData"-object (or a subset thereof) along with a genome (DNAStringSet-object) and extracts the for each loci
@@ -332,6 +282,7 @@ create_interaction_matrix <- function(sequences,sequencesrev=reverseComplement(s
 .sebenv$create_interaction_matrix  <- create_interaction_matrix
 rm(create_interaction_matrix )
 
+# compression
 lz <-function(seq2, D = c("A", "C", "G", "T")) {
   seq <- strsplit(as.character(seq2),"")[[1]]
   index <- c()
@@ -441,7 +392,7 @@ fisheromnibus <- function(x) {
 rm(fisheromnibus )
 
 #Fabian: verwende jetzt andere Methode, welche das in eine Normalverteilung umwandelt
-stouffer <- function(x) {
+.sebenv$stouffer <- function(x) {
   nr_tests <- length(x)
   statistic <- sum(qnorm(x,lower.tail=FALSE))/sqrt(nr_tests)
   pval <- pnorm(statistic,lower.tail=FALSE)
@@ -458,8 +409,6 @@ stouffer <- function(x) {
 #Gewichtung
 #stouffer: c(0.999,0.001) = 0.5
 #fisher: c(0.999,0.001) = 0.008
-.sebenv$stouffer  <- stouffer
-rm(stouffer )
 
 
 plothclust2=function(dists,data){
@@ -875,16 +824,5 @@ rm(overlap_annot)
   # save element list to facilitate access using an index in case rownames are not named
 }
 
-.sebenv$dfinit <- function (col, row, init = NA) {
-  # input col, row = vectors with column/row names as stings
-  df <- as.data.frame(matrix(init, ncol = length(col), nrow = length(row)))
-  rownames(df) <- row
-  colnames(df) <- col
-  return(df)
-}
-# dfinit(c("col1", "col2", "col3"), c("r1", "r2"))
-#     a  b
-# r1 NA NA
-# r2 NA NA
 
 attach(.sebenv)
