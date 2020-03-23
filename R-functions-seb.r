@@ -98,6 +98,8 @@
   }
   return(m)
 }
+.sebenv$cross_overlap_grange  <- cross_overlap_grange
+rm(cross_overlap_grange )
 
 
 .sebenv$makepumatrix <- function(reads,weight=1L) {
@@ -312,6 +314,7 @@ create_interaction_matrix <- function(sequences,sequencesrev=reverseComplement(s
 .sebenv$create_interaction_matrix  <- create_interaction_matrix
 rm(create_interaction_matrix )
 
+# compression
 lz <-function(seq2, D = c("A", "C", "G", "T")) {
   seq <- strsplit(as.character(seq2),"")[[1]]
   index <- c()
@@ -870,6 +873,51 @@ rm(plotMAgg)
   rownames(df) <- row
   colnames(df) <- col
   return(df)
+}
+
+
+.sebenv$checkPacks<-function(path){
+  require(NCmisc)
+  require(stringr)
+  require(dplyr)
+
+  ## get all R files in your directory
+  ## by the way, extract R code from Rmd: http://felixfan.github.io/extract-r-code/
+  files<-list.files(path)[str_detect(list.files(path), file.path(".R$"))]
+
+  ## extract all functions and which package they are from 
+  ## using NCmisc::list.functions.in.file
+  funs<-unlist(lapply(paste0(path, "/", files), list.functions.in.file))
+  packs<-funs %>% names()
+
+  ## "character" functions such as reactive objects in Shiny
+  characters<-packs[str_detect(packs, "^character")]
+
+  ## user defined functions in the global environment
+  globals<-packs[str_detect(packs, "^.GlobalEnv")]
+
+  ## functions that are in multiple packages' namespaces 
+  multipackages<-packs[str_detect(packs, ", ")]
+
+  ## get just the unique package names from multipackages
+  mpackages<-multipackages %>%
+    str_extract_all(., "[a-zA-Z0-9]+") %>%
+    unlist() %>%
+    unique()
+  mpackages<-mpackages[!mpackages %in% c("c", "package")]
+
+  ## functions that are from single packages
+  packages<-packs[str_detect(packs, "package:") & !packs %in% multipackages] %>%
+    str_replace(., "[0-9]+$", "") %>%
+    str_replace(., "package:", "") 
+
+  ## unique packages
+  packages_u<-packages %>%
+    unique() %>%
+    union(., mpackages)
+
+  return(list(packs=packages_u, tb=table(packages)))
+
 }
 # dfinit(c("col1", "col2", "col3"), c("r1", "r2"))
 #     a  b
