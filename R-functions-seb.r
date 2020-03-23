@@ -971,7 +971,7 @@ rm(plotMAgg)
 
 .sebenv$table2d <- function(...) ftable(addmargins(table(..., useNA = "always")))
 
-.sebenv$table3 <- function(...) (prop.table(table(..., useNA = "always")))
+.sebenv$table_prop <- function(...) round(100*prop.table(table(...)),1)
 
 
 # source("/home/sm934/code/R-code-misc-seb/R-functions-seb.r")
