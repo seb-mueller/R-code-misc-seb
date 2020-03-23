@@ -86,7 +86,7 @@
 ###cross overlapping table types in of g-range data
 #given: GRanges object (here genes) with annotation in say type column
 #output: table indicating how many of those types overlap
-cross_overlap_grange <- function(genes) {
+.sebenv$cross_overlap_grange <- function(genes) {
   types <- levels(genes$type)
   m <- matrix(NA,ncol=length(types),nrow=length(types))
   colnames(m) <- rownames(m) <- types
@@ -144,6 +144,8 @@ cross_overlap_grange <- function(genes) {
 #pumatrixgg2 <- pmatrix[pmatrix$coverage!=0,]
 #ggplot(pumatrixgg2, aes(x=position,y=coverage,fill=size)) + geom_bar(stat="identity",position = "identity") + facet_grid(sample~chromosome,scales = "free") + theme_bw() + theme(strip.text.y = element_text(size = 7))
 
+# input 2 vectors (of which elementwise M and A is required)
+# output: data.frame with m and a column
 .sebenv$logma <- function(x,y) {
   a <- 0.5*(log2(x*y))
   m <- log2(x/y)
@@ -224,7 +226,7 @@ cross_overlap_grange <- function(genes) {
 # then plot 1 will go in the upper left, 2 will go in the upper right, and
 # 3 will go all the way across the bottom.
 #
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+.sebenv$multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   require(grid)
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
@@ -262,7 +264,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 # unqall_24_3 <- subset2network2(subset=subsetall,cD=classSegLike99,genome=genomemod,ngramwindow=24,maxmismatches=3,tb.end=2)
 
 #!!!##toms new data: /home/tjh48/Code/segmentMap_II/classSegLike.RData
-subset2network2 <- function(subset,cD,genome,ngramwindow=18,maxmismatches=2,tb.end=4,mode="both") {
+.sebenv$subset2network2 <- function(subset,cD,genome,ngramwindow=18,maxmismatches=2,tb.end=4,mode="both") {
   ## change to v1: in cD object, the annoation slot is no changed to coordinate slot
   ## also the coordinates are now GRanage-objects
   mode <- (match.arg(mode))
@@ -286,8 +288,6 @@ subset2network2 <- function(subset,cD,genome,ngramwindow=18,maxmismatches=2,tb.e
   im$locisubset <- locisubset
   im
 }
-.sebenv$subset2network2  <- subset2network2
-rm(subset2network2 )
 
 ## function to create interaction matrices
 ## it takes a list of Sequences (BiostringSet-object) and calculates for each pair of this list if they have a common sequence
@@ -403,25 +403,21 @@ drawtree <- function(pan){
 .sebenv$drawtree  <- drawtree
 rm(drawtree )
 
-oncheck <- function(pan) {
+.sebenv$oncheck <- function(pan) {
   if (pan$xrns) points(pan$dists[[pan$lbvalue]]$resampled_points, col=16,pch=4)
   else { plot(pan$data,type="n"); drawtree(pan) }
   pan
 }
-.sebenv$oncheck  <- oncheck
-rm(oncheck )
 
 #http://en.wikipedia.org/wiki/Fisher's_method
-fisheromnibus <- function(x) {
+.sebenv$fisheromnibus <- function(x) {
   number_conditions <- length(x)
   X2 <- -2 * sum(log(x))
   pchisq( X2, 2*number_conditions, lower.tail=FALSE)
 }
-.sebenv$fisheromnibus  <- fisheromnibus
-rm(fisheromnibus )
 
-#Fabian: verwende jetzt andere Methode, welche das in eine Normalverteilung umwandelt
-stouffer <- function(x) {
+#fisher omnibus: Fabian: verwende jetzt andere Methode, welche das in eine Normalverteilung umwandelt
+.sebenv$stouffer <- function(x) {
   nr_tests <- length(x)
   statistic <- sum(qnorm(x,lower.tail=FALSE))/sqrt(nr_tests)
   pval <- pnorm(statistic,lower.tail=FALSE)
@@ -438,8 +434,6 @@ stouffer <- function(x) {
 #Gewichtung
 #stouffer: c(0.999,0.001) = 0.5
 #fisher: c(0.999,0.001) = 0.008
-.sebenv$stouffer  <- stouffer
-rm(stouffer )
 
 
 plothclust2=function(dists,data){
@@ -529,7 +523,7 @@ plotMA.CDreturn <- function(cD, samplesA, samplesB, normaliseData = TRUE, scale 
 rm(plotMA.CDreturn )
 
 ## ---- bam2counts
-gwcov <- function(bins,mygroupdf,path=".",filecol="File",paired=TRUE,...) {
+.sebenv$gwcov <- function(bins,mygroupdf,path=".",filecol="File",paired=TRUE,...) {
   require(ShortRead)
   require(reshape2)
   require(GenomicAlignments)
@@ -598,7 +592,7 @@ gwcov <- function(bins,mygroupdf,path=".",filecol="File",paired=TRUE,...) {
 }
 
 ## ---- bam2counts2
-gwcov2 <- function(bins,mygroupdf,path=".",filecol="File") {
+.sebenv$gwcov2 <- function(bins,mygroupdf,path=".",filecol="File") {
   require(ShortRead)
   require(reshape2)
   require(GenomicAlignments)
@@ -622,8 +616,6 @@ gwcov2 <- function(bins,mygroupdf,path=".",filecol="File") {
   }
   return(list(wide=bin.counts.wide,long=bin.counts.long))
 }
-.sebenv$gwcov  <- gwcov
-rm(gwcov )
 
 gwcov.long <- function(bin.counts.wide,mygroupdf) {
   myannotcols <- c("seqnames","start","ID","genome")
@@ -704,11 +696,10 @@ plotMAgg <- function(x, y=NULL, uselog=TRUE,offset=0,norm=FALSE,method="TMM",dco
     geom_hline(yintercept=uq9,color="green")+ geom_text(aes( 0, uq9, label = "upperquartile p=0.9", size = 3))
   return(MA.plot)
 }
-
 .sebenv$plotMAgg <- plotMAgg
 rm(plotMAgg)
 
-panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, same.font.size=FALSE,...) {
+.sebenv$panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, same.font.size=FALSE,...) {
   usr <- par("usr"); on.exit(par(usr))
   par(usr = c(0, 1, 0, 1))
   r <- cor(x, y, ...)
@@ -722,8 +713,6 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, same.font.size=FAL
   }
 }
 #pairs(iris,upper.panel=function(x,y) panel.cor(x,y,method="spearman"))
-.sebenv$panel.cor <- panel.cor
-rm(panel.cor)
 
 
 ###
@@ -751,17 +740,44 @@ rm(panel.cor)
   return(interval)
 }
 
-# Input: 2 GRange Objects
+# Input: 2 GRange Objects %>%
 # Output: 1 GRange Object (same as first input with additional Column)
 # Parameter
 #  naming: Name of the new Column
-overlap_annot <- function(interval, annot, naming, ColName="Name") {
-  interval@elementMetadata[[naming]] <- rep("none", length(interval))
-  overlap <- findOverlaps(annot,interval)
-  uniqueannot <- !duplicated(queryHits(overlap))
-  interval@elementMetadata[[naming]][subjectHits(overlap)[uniqueannot]] <- as.character(annot[queryHits(overlap)[uniqueannot],]@elementMetadata[[ColName]])
-  interval
+#  uniqueSubject: if subjects overlaps muliple times, should only first be reported? FALSE most sensible in most cases..
+.sebenv$overlap_annot <- function(query, subject, naming, ColName="Name", uniqueSubject = TRUE) {
+  query@elementMetadata[[naming]] <- rep("none", length(query))
+  overlap <- findOverlaps(subject,query)
+  if (uniqueSubject) {
+    uniquesubject <- !duplicated(queryHits(overlap))
+    query@elementMetadata[[naming]][subjectHits(overlap)[uniquesubject]] <-
+      as.character(subject[queryHits(overlap)[uniquesubject],]@elementMetadata[[ColName]])
+  } else {
+    query@elementMetadata[[naming]][subjectHits(overlap)] <-
+      as.character(subject[queryHits(overlap),]@elementMetadata[[ColName]])
+  }
+  return(query)
 }
+# naming="test"
+# ColName="score2"
+# df <- data.frame(
+#     seqnames = rep(c("chr1", "chr1", "chr1", "chr1"), c(1, 3, 2, 4)),
+#     start = c(10, 12, 12, 132, 134, 152, 153, 160, 166, 260),
+#     end =   c(14, 15, 17, 132, 155, 154, 159, 166, 171, 290),
+#     strand = rep(strand(c("*", "*", "*", "*", "*")), c(1, 2, 2, 3, 2)),
+#     row.names = head(letters, 10))
+# query <- makeGRangesFromDataFrame(df, keep.extra.columns=TRUE)
+# df2 <- data.frame(
+#     seqnames = rep(c("chr1", "chr1", "chr1", "chr1"), c(1)),
+#     start = c(1, 105, 125,290),
+#     end =   c(104, 220, 133, 332),
+#     strand = rep(strand(c("*", "*", "*", "*")), c(1)),
+#     score2 = 11:14,
+#     row.names = head(letters, 4))
+# subject <- makeGRangesFromDataFrame(df2, keep.extra.columns=TRUE)
+# overlap_annot(query, subject, "test", "score2")
+# overlap_annot(query, subject, "test", "score2", FALSE)
+
 
 .sebenv$headtail  <-  function(df, num = 3) {
   nr <- nrow(df)
@@ -835,10 +851,10 @@ overlap_annot <- function(interval, annot, naming, ColName="Name") {
     grouplist[[paste(colnames(listInputunique)[currentRow], collapse = ":")]] <- myelements
     myelements
     # attr(,"groups")
-    #   one   two three 
-    # FALSE FALSE  TRUE 
-    #  f  i 
-    # 12 13 
+    #   one   two three
+    # FALSE FALSE  TRUE
+    #  f  i
+    # 12 13
   }
   if (sort) {
     grouplist <- grouplist[order(sapply(grouplist, function(x) length(x)), decreasing = TRUE)]
@@ -860,4 +876,56 @@ overlap_annot <- function(interval, annot, naming, ColName="Name") {
 # r1 NA NA
 # r2 NA NA
 
-# attach(.sebenv)
+# computes average methylation for each sample in a "methylBase" object:
+# by Sebastian Mueller
+# e.g. meth:
+# methylBase object with 6 rows
+# --------------
+#   chr start end strand coverage1 numCs1 numTs1 coverage2 numCs2 numTs2 coverage3 numCs3 ...
+# 1   1   110 110      *         3      3      0        26     25      1         2      2
+# 2   1   115 115      *         4      4      0        50     49      1         3      3
+#
+# usage: meth_summary(meth)
+# output:
+# sample1   sample2
+# 0.7661584 0.7459081
+.sebenv$meth_summary <- function(mymeth) {
+  require(dplyr)
+  mynames <- mymeth@sample.ids
+  mysummary <- as.data.frame(mymeth) %>%
+    select(starts_with("num")) %>%
+    colSums(na.rm = TRUE) %>%
+    tapply(rep(seq_along(mynames), each = 2), function(x) x[1] / sum(x))
+  names(mysummary) <- mynames
+  return(mysummary)
+}
+
+.sebenv$GOfun <- function (targetset, background) {
+  interestingGenes <- factor(as.integer( names(background) %in% ((targetset)) ) )
+  names(interestingGenes) <- names(background)
+  res <- NA
+  for (ont in c("BP","MF","CC")) {
+    # GOdata            <- new("topGOdata", ontology = ont, allGenes = interestingGenes, annot = annFUN.gene2GO, gene2GO = background)
+    GOdata            <- new("topGOdata",
+                             ontology = ont,
+                             allGenes = interestingGenes,
+                             annot = annFUN.gene2GO,
+                             # named list of character vectors.  The list names are genes identifiers.  For eachgene the character vector contains the GO identifiers it maps to.  Only the mostspecific annotations are required
+                             gene2GO = background)
+    resultFisher      <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
+    resultFisher.Elim <- runTest(GOdata, algorithm = "elim", statistic = "fisher")
+    enrichRes         <- GenTable(GOdata, classicFisher = resultFisher, elimFisher = resultFisher.Elim, orderBy = "classicFisher", ranksOf ="elimFisher", topNodes = 20)
+    res               <- rbind(res,ont,enrichRes)
+  }
+  return(res)
+}
+.sebenv$table2 <- function(...) table(..., useNA = "always")  # counts all three
+
+.sebenv$table2d <- function(...) ftable(addmargins(table(..., useNA = "always")))
+
+.sebenv$table3 <- function(...) (prop.table(table(..., useNA = "always")))
+
+
+# source("/home/sm934/code/R-code-misc-seb/R-functions-seb.r")
+attach(.sebenv)
+
