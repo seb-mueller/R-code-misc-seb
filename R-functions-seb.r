@@ -98,9 +98,6 @@
   }
   return(m)
 }
-.sebenv$cross_overlap_grange  <- cross_overlap_grange
-rm(cross_overlap_grange )
-
 
 .sebenv$makepumatrix <- function(reads,weight=1L) {
   treatments <- paste(rep(21:24,2),rep(c("+","-"),each=4))
