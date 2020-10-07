@@ -3,6 +3,14 @@
 ################################### 2nd
 .sebenv$headm <- function(x, n=6) x[1:n, 1:n]
 
+# This function returns TRUE wherever elements are the same, including NA's,
+# and FALSE everywhere else.
+.sebenv$compareNA <- function(v1,v2) {
+    same <- (v1 == v2) | (is.na(v1) & is.na(v2))
+    same[is.na(same)] <- FALSE
+    return(same)
+}
+
 .sebenv$di <- function() X11.options(display=scan(file="~/.display",what=character()))
 
 .sebenv$label2number <- function(myvec) {
@@ -436,16 +444,14 @@ rm(drawtree )
 #fisher: c(0.999,0.001) = 0.008
 
 
-plothclust2=function(dists,data){
+.sebenv$plothclust2=function(dists,data){
   panel <- rp.control(data=data,dists=dists,slidervalue=1,hlist=list(),distmat=NULL,xrns=FALSE)	# don't take "a"
   rp.listbox(panel, lbvalue,action=drawhclust3, names(dists))
   rp.slider(panel,slidervalue,1,20,drawtree,showvalue=TRUE,res=1)
   rp.checkbox(panel, xrns, action=oncheck)
 }
-.sebenv$plothclust2 <- plothclust2
-rm(plothclust2)
 
-plotMA.CDreturn <- function(cD, samplesA, samplesB, normaliseData = TRUE, scale = NULL,
+.sebenv$plotMACDreturn <- function(cD, samplesA, samplesB, normaliseData = TRUE, scale = NULL,
                             xlab = "A", ylab = "M", ...)
 {
   if (length(dim(cD)) > 2)
@@ -519,8 +525,6 @@ plotMA.CDreturn <- function(cD, samplesA, samplesB, normaliseData = TRUE, scale 
   abline(h = c(-1, 1) * (1 + infRatio), col = "orange", lty = 3)
   return(cbind(M,A))
 }
-.sebenv$plotMA.CDreturn  <- plotMA.CDreturn
-rm(plotMA.CDreturn )
 
 ## ---- bam2counts
 .sebenv$gwcov <- function(bins,mygroupdf,path=".",filecol="File",paired=TRUE,...) {

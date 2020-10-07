@@ -1,10 +1,24 @@
 .libPaths(rev(.libPaths()))
 library(Seurat)
-library(dplyri)
+library(dplyr)
 library(Matrix)
 
 load("~/dropseq/summary/R_Seurat_objects.rdata")
 load("~/R_Seurat.rdata")
+setwd("/home/sm934/workspace/dolomite/plant-ta-jf_20200810_arabidopsis_threshold250_salvaged_genes/results/summary")
+seuratobj <- readRDS("R_Seurat_object.rds")
+# list of genes
+rownames(seuratobj@assays$RNA@meta.features)
+
+pbmc <- seuratobj
+pbmc <- RunUMAP(pbmc, dims = 1:9)
+seuratobj <- RunUMAP(seuratobj,umap.method = "umap-learn",dims = c(1,2,3,4,5,6,7,8,9), metric = "correlation")
+seuratobj <- FindClusters(seuratobj, resolution = 1.5, print.output = FALSE)
+saveRDS(seuratobj, "R_Seurat_object_withumap.rds")
+
+DimPlot(seuratobj, reduction = "umap", label = TRUE)
+DimPlot(seuratobj, reduction = "pca", label = TRUE)
+DimPlot(seuratobj, reduction = "tsne", label = TRUE)
 
 
 myumi <- AddMetaData(myumi, Matrix::colSums(myumi@raw.data[sribo.gene.names, ])/col.total.umi, "pct.sribo")
@@ -14,7 +28,8 @@ gg <- VlnPlot(myumi,
 # ggsave(gg,file=file.path("violinplots_comparison_UMI.pdf"),width=18,height=18)
 ggsave(gg, file  = snakemake@output$pdf_violine, width = 18, height = 18)
 
-
+features <- c("ROP2", "ROP6", "ARP2", "ARP3", "IQD5", "RBCS", "GC1", "CUT1","FAMA","HIC","EPF1", "EPF2", "LHCB", "PSAB", "Lhcb2.1", "CA", "Sultr2;1")
+DotPlot(seuratobj, features = features) + RotatedAxis()
 
 # AddMetaData adds columns to object@meta.data, and is a great place to
 # stash QC stats
