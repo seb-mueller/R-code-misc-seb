@@ -596,7 +596,7 @@ rm(drawtree )
 }
 
 ## ---- bam2counts2
-.sebenv$gwcov2 <- function(bins,mygroupdf,path=".",filecol="File") {
+.sebenv$gwcov2 <- function(bins,mygroupdf,path=".",filecol="File", sizefilter = NULL) {
   require(ShortRead)
   require(reshape2)
   require(GenomicAlignments)
@@ -608,7 +608,11 @@ rm(drawtree )
   for (bam in bamFls){
     message("reading in ",paste(path,bam,sep="/"))
     #     bin.counts.wide[,bam] <- countOverlaps(bins,readGAlignments(paste(path,bam,sep="/")))
-    bin.counts.wide[,bam] <- countOverlaps(bins,readGAlignments(paste(path,bam,sep="/")))
+    readin <- readGAlignments(paste(path,bam,sep="/"))
+    if(!is.null(sizefilter)) {
+      readin <- readin[width(readin) %in% sizefilter, ]
+    }
+    bin.counts.wide[,bam] <- countOverlaps(bins,readin)
     #counts_marks[,names(bamFls[i])] <- countOverlaps(gr4, aln[hits==1])
   }
   bin.counts.wide <- cbind(as.data.frame(bin.counts.wide),as.data.frame(bins)[,myannotcols])
@@ -972,8 +976,9 @@ rm(plotMAgg)
 
 .sebenv$table2d <- function(...) ftable(addmargins(table(..., useNA = "always")))
 
-.sebenv$table_prop <- function(...) round(100*prop.table(table(...)),1)
+# .sebenv$table_prop <- function(...) round(100*prop.table(table(...)),1)
 
+.sebenv$table_prop <- function(x, myround = 2, mymargin = NULL, ...) {round(prop.table(table(x, deparse.level = 0, ...), margin = mymargin)*100, myround)}
 
 # source("/home/sm934/code/R-code-misc-seb/R-functions-seb.r")
 attach(.sebenv)
