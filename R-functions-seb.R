@@ -11,6 +11,21 @@
     return(same)
 }
 
+# This function returns TRUE wherever elements are the same, including NA's,
+# and FALSE everywhere else.
+.sebenv$compareNA2 <- function(v1,v2) {
+    same <- (v1 == v2) | (is.na(v2) )
+    same[is.na(same)] <- FALSE
+    return(same)
+}
+# compareNA2(1,2)
+# compareNA2(1,1)
+# compareNA2(NA,NA)
+# compareNA2(NA,2) #T
+# compareNA2(2,NA) #F
+# compareNA(NA,2) #F
+# compareNA(2,NA) #F
+
 .sebenv$di <- function() X11.options(display=scan(file="~/.display",what=character()))
 
 .sebenv$label2number <- function(myvec) {
